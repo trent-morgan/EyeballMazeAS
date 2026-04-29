@@ -1,0 +1,135 @@
+package nz.ac.ara.tpm.eyeballmazeas.model;
+
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+class TestCompletingGoals {
+
+    Game game;
+    LevelDataHandler levelDataHandler;
+
+    record SquareData(Color color, Shape shape, Position position) {}
+
+    SquareData[] levelOneInitData = {
+        new SquareData(Color.BLANK, Shape.BLANK, new Position(0, 0)),
+        new SquareData(Color.BLANK, Shape.BLANK, new Position(0, 1)),
+        new SquareData(Color.RED, Shape.FLOWER, new Position(0, 2)),
+        new SquareData(Color.BLANK, Shape.BLANK, new Position(0, 3)),
+        new SquareData(Color.BLUE, Shape.CROSS, new Position(1, 0)),
+        new SquareData(Color.YELLOW, Shape.FLOWER, new Position(1, 1)),
+        new SquareData(Color.YELLOW, Shape.DIAMOND, new Position(1, 2)),
+        new SquareData(Color.GREEN, Shape.CROSS, new Position(1, 3)),
+        new SquareData(Color.GREEN, Shape.FLOWER, new Position(2, 0)),
+        new SquareData(Color.RED, Shape.STAR, new Position(2, 1)),
+        new SquareData(Color.GREEN, Shape.STAR, new Position(2, 2)),
+        new SquareData(Color.YELLOW, Shape.DIAMOND, new Position(2, 3)),
+        new SquareData(Color.RED, Shape.FLOWER, new Position(3, 0)),
+        new SquareData(Color.BLUE, Shape.FLOWER, new Position(3, 1)),
+        new SquareData(Color.RED, Shape.STAR, new Position(3, 2)),
+        new SquareData(Color.GREEN, Shape.FLOWER, new Position(3, 3)),
+        new SquareData(Color.BLUE, Shape.STAR, new Position(4, 0)),
+        new SquareData(Color.RED, Shape.DIAMOND, new Position(4, 1)),
+        new SquareData(Color.BLUE, Shape.FLOWER, new Position(4, 2)),
+        new SquareData(Color.BLUE, Shape.DIAMOND, new Position(4, 3)),
+        new SquareData(Color.BLANK, Shape.BLANK, new Position(5, 0)),
+        new SquareData(Color.BLUE, Shape.DIAMOND, new Position(5, 1)),
+        new SquareData(Color.BLANK, Shape.BLANK, new Position(5, 2)),
+        new SquareData(Color.BLANK, Shape.BLANK, new Position(5, 3))
+    };
+
+    Position[] levelOneSolution = {
+        new Position(3, 1), 
+        new Position(3, 3), 
+        new Position(1, 3), 
+        new Position(1, 0),
+        new Position(4, 0), 
+        new Position(4, 2), 
+        new Position(0, 2)
+    };
+
+    private class LevelDataHandler {
+        Game game;
+
+        public LevelDataHandler(Game game) {
+            this.game = game;
+        }
+
+        public void createLevel(int height, int width) {
+            this.game.addLevel(height, width);
+        }
+
+        public void setUpLevel(SquareData[] levelInitData) {
+            for (SquareData s : levelInitData) {
+                Square square;
+                if ((s.color == Color.BLANK) && (s.shape == Shape.BLANK)) {
+                    square = new BlankSquare();
+                } else {
+                    square = new PlayableSquare(s.color, s.shape);
+                }
+                this.game.addSquare(square, s.position.getRow(), s.position.getColumn());
+            }
+        }
+    }
+    
+    private void setUpLevelOne() {
+        game = new Game();
+        levelDataHandler = new LevelDataHandler(game);
+        levelDataHandler.createLevel(6, 4);
+        levelDataHandler.setUpLevel(levelOneInitData);
+        game.addGoal(0, 2);
+        game.addEyeball(5, 1, Direction.UP);
+    }
+
+    @Test
+    void testCompletingLevelOne() {
+        setUpLevelOne();
+        for (Position p : levelOneSolution) {
+            game.moveTo(p.getRow(), p.getColumn());
+        }
+        int expectedCompletedGoalCount = 1;
+        int actualGoalCount = game.getCompletedGoalCount();
+        assertEquals(expectedCompletedGoalCount, actualGoalCount);
+    }
+
+    private void add10High1WideLevel() {
+        game = new Game();
+        game.addLevel(10, 1);
+        game.addSquare(new PlayableSquare(Color.YELLOW, Shape.STAR),    4, 0);
+        game.addSquare(new PlayableSquare(Color.RED,    Shape.CROSS),   5, 0);
+        game.addSquare(new PlayableSquare(Color.GREEN,  Shape.STAR),    6, 0);
+        game.addSquare(new PlayableSquare(Color.BLUE,   Shape.DIAMOND), 7, 0);
+        game.addSquare(new PlayableSquare(Color.GREEN,  Shape.FLOWER),  8, 0);
+        game.addEyeball(4, 0, Direction.LEFT);
+        game.addGoal(6, 0);
+    }
+
+    @Test
+    void testOkToMoveToAGoalWithSameColorOrShape() {
+        add10High1WideLevel();
+        assertTrue(game.canMoveTo(6, 0));
+    }
+
+    @Test
+    void testNoErrorMessageWhenMovingToAGoalWithSameColorOrShape() {
+        add10High1WideLevel();
+        Message expected = Message.OK;
+        Message actual = game.messageIfMovingTo(6, 0);
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    void testNotOkToMoveToAGoalWithDifferentColorOrShape() {
+        add10High1WideLevel();
+        game.addGoal(8, 0);
+        assertFalse(game.canMoveTo(8, 0));
+    }
+
+    @Test
+    void testGetsErrorMessageWhenMovingToAGoalWithDifferentColorOrShape() {
+        add10High1WideLevel();
+        Message expected = Message.DIFFERENT_SHAPE_OR_COLOR;
+        game.addGoal(8, 0);
+        Message actual = game.messageIfMovingTo(8, 0);
+        assertEquals(expected, actual);
+    }
+}
