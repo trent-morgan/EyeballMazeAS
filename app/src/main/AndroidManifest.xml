@@ -20,6 +20,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.LevelsActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.LEVELS" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.GameActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.GAME" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

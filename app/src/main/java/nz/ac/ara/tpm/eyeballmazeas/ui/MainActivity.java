@@ -1,6 +1,9 @@
 package nz.ac.ara.tpm.eyeballmazeas.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,8 +12,15 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import nz.ac.ara.tpm.eyeballmazeas.R;
+import nz.ac.ara.tpm.eyeballmazeas.viewmodel.GameViewModel;
 
 public class MainActivity extends AppCompatActivity {
+
+    private GameViewModel viewModel;
+
+    private Button levelsButton;
+    private Button rulesButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +31,26 @@ public class MainActivity extends AppCompatActivity {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
+        });
+
+        Button levelsButton = findViewById(R.id.btn_level_menu);
+        levelsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, LevelsActivity.class);
+                startActivity(intent);
+            }
+
+        });
+
+        Button rulesButton = findViewById(R.id.btn_rules);
+        rulesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, RulesActivity.class);
+                startActivity(intent);
+            }
+
         });
     }
 }
