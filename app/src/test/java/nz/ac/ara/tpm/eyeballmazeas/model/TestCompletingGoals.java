@@ -47,7 +47,7 @@ class TestCompletingGoals {
         new Position(0, 2)
     };
 
-    private class LevelDataHandler {
+    private static class LevelDataHandler {
         Game game;
 
         public LevelDataHandler(Game game) {
