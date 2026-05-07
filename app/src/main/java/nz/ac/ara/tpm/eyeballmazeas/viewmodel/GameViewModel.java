@@ -20,43 +20,58 @@ public class GameViewModel extends AndroidViewModel { // Changed to AndroidViewM
     public GameViewModel(Application application) {
         super(application); // Added this mandatory line
         game = new Game();
-        loadLevelData(0);
+        loadAllLevels();
     }
 
-    public void loadLevelData(int levelIndex) {
+    public void loadAllLevels() {
+        try {
+            // 1. Get a list of all files in the "levels" folder
+            String[] levelFiles = getApplication().getAssets().list("levels");
 
-        // 2. Correct Java syntax for a List of strings
-        java.util.List<String> levels = java.util.Arrays.asList(
-                "levels/level_1.json",
-                "levels/level_2.json",
-                "levels/level_3.json"
-        );
-
-        // 3. Prevent an "IndexOutOfBounds" error if the levelIndex is wrong
-        if (levelIndex < 0 || levelIndex >= levels.size()) {
-            Log.e("JSON_LOAD", "Invalid level index: " + levelIndex);
-            return;
+            if (levelFiles != null) {
+                // 2. Loop through every file found
+                for (int i = 0; i < levelFiles.length; i++) {
+                    // Ensure we only load JSON files
+                    if (levelFiles[i].endsWith(".json")) {
+                        loadSpecificLevel("levels/" + levelFiles[i]);
+                    }
+                }
+            }
+        } catch (java.io.IOException e) {
+            Log.e("ASSET_ERROR", "Could not list levels folder", e);
         }
+    }
 
-        // 4. Use the levelIndex to get the correct filename from your list
-        String fileName = levels.get(levelIndex);
-        String jsonString = loadJSONFromAsset(getApplication(), fileName);
-
+    // Refactor your loading logic into this helper
+    private void loadSpecificLevel(String path) {
+        String jsonString = loadJSONFromAsset(getApplication(), path);
         if (jsonString != null) {
             Gson gson = new Gson();
             LevelData data = gson.fromJson(jsonString, LevelData.class);
 
-            // 5. Clear the current game state before loading a new level
-            // (Assuming your Game class has a way to reset/clear old levels)
-            // game.clear();
-
+            // 1. Initialize the level structure
             game.addLevel(data.height, data.width);
 
+            // 2. Load the Squares (for the grid)
             for (SquareData s : data.squares) {
                 game.addSquare(new PlayableSquare(s.color, s.shape), s.row, s.column);
             }
 
-            Log.d("JSON_LOAD", "Successfully loaded: " + fileName);
+            // 3. FIX: Load the Goals from the "goals" list in JSON
+            if (data.goals != null) {
+                for (GoalData g : data.goals) {
+                    game.addGoal(g.row, g.column);
+                    Log.d("LOAD_DEBUG", "Goal added at: " + g.row + "," + g.column);
+                }
+            }
+
+            // 4. Load the Eyeball starting position
+            if (data.eyeball != null) {
+                // Assuming your Direction enum matches "UP", "DOWN", etc.
+                nz.ac.ara.tpm.eyeballmazeas.model.Direction dir =
+                        nz.ac.ara.tpm.eyeballmazeas.model.Direction.valueOf(data.eyeball.direction.toUpperCase());
+                game.addEyeball(data.eyeball.row, data.eyeball.column, dir);
+            }
         }
     }
 
@@ -81,16 +96,30 @@ public class GameViewModel extends AndroidViewModel { // Changed to AndroidViewM
     }
 
     // These inner classes tell GSON how to read your level_1.json file
+    // Inside GameViewModel.java
     private static class LevelData {
         int width;
         int height;
+        EyeballData eyeball;    // Matches the "eyeball" object in JSON
+        List<GoalData> goals;   // Matches the "goals" list in JSON
         List<SquareData> squares;
+    }
+
+    private static class GoalData {
+        int row;
+        int column;
+    }
+
+    private static class EyeballData {
+        int row;
+        int column;
+        String direction; // Will be converted to your Direction Enum
     }
 
     private static class SquareData {
         int row;
         int column;
-        Color color; // GSON is smart enough to match string "RED" to Color.RED
+        Color color;
         Shape shape;
     }
 }

@@ -4,6 +4,8 @@ public class Game implements IMoving, IEyeballHolder {
 	
 	private LevelHolder levelHolder;
 	private EyeballHolder eyeballHolder;
+
+	private int moveCount = 0; // Initialize at zero
 	
 	public Game() {
 		this.levelHolder = new LevelHolder();
@@ -230,5 +232,15 @@ public class Game implements IMoving, IEyeballHolder {
 	
 	public void checkGoal(int row, int column) {
 		this.levelHolder.checkGoal(row, column);
+	}
+
+	//ADDED FOR MOVE COUNT
+	public void increaseMoveCount () { this.moveCount ++; }
+	public int getMoveCount() {
+		return this.moveCount;
+	}
+
+	public void resetMoveCount() {
+		this.moveCount = 0;
 	}
 }

@@ -35,7 +35,8 @@ public class GoalHolder implements IGoalHolder {
 		Position goal = new Position(row, column);
 		if (goals.contains(goal)) {
 			completedGoals.add(goal);
-			goals.remove(goal);
+			//removed
+//			goals.remove(goal);
 		}
 	}
 
