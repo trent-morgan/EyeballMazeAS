@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
             btn.setOnClickListener(v -> {
                 Log.d("LEVEL_CLICK", "Loading Index: " + levelIndex);
-                // We no longer need to call loadLevelData here if you pre-load
+                // We no longer need to call loadLevelData here if you preload
                 // in the ViewModel constructor as we discussed.
                 updateMazeDisplay(levelIndex);
 //                updateLabelDisplay(levelIndex);
@@ -96,10 +96,12 @@ public class MainActivity extends AppCompatActivity {
         mazeGrid.setRowCount(rows);
         mazeGrid.setColumnCount(cols);
 
-        float density = getResources().getDisplayMetrics().density;
+//        float density = getResources().getDisplayMetrics().density;
+//
+//        int densityInt = ((3 * viewModel.getGame().getLevelHeight()) + (2 * viewModel.getGame().getLevelWidth()));
+//        int squareSize = (int) (((100) - densityInt) * density);
+        int squareSize = (int) (170);
 
-        int densityInt = 100 - (4 * viewModel.getGame().getLevelWidth());
-        int squareSize = (int) (densityInt * density);
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
@@ -153,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
             case "BLUE" -> android.graphics.Color.CYAN;
             case "GREEN" -> android.graphics.Color.parseColor("#32CD32");
             case "YELLOW" -> android.graphics.Color.YELLOW;
+            case "PURPLE" -> android.graphics.Color.MAGENTA;
             default -> android.graphics.Color.LTGRAY;
         };
     }
@@ -164,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
             case "FLOWER" -> R.drawable.ic_flower;
             case "DIAMOND" -> R.drawable.ic_diamond;
             case "CROSS" -> R.drawable.ic_cross;
+            case "LIGHTNING" -> R.drawable.ic_lightning;
             case "CHARACTER" -> R.drawable.ic_eyeball; // Added your eyeball character
             default -> 0;
         };

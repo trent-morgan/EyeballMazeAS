@@ -1,0 +1,43 @@
+{
+  "width": 5,
+  "height": 6,
+  "eyeball": {
+    "row": 5,
+    "column": 2,
+    "direction": "UP"
+  },
+  "goals": [
+    { "row": 0, "column": 1 },
+    { "row": 0, "column": 3 }
+  ],
+  "squares": [
+    { "row": 0, "column": 0, "color": "BLUE", "shape": "DIAMOND" },
+    { "row": 0, "column": 1, "color": "RED", "shape": "DIAMOND" },
+    { "row": 0, "column": 2, "color": "BLUE", "shape": "CROSS" },
+    { "row": 0, "column": 3, "color": "BLUE", "shape": "STAR" },
+    { "row": 0, "column": 4, "color": "YELLOW", "shape": "CROSS" },
+
+    { "row": 1, "column": 0, "color": "YELLOW", "shape": "CROSS" },
+    { "row": 1, "column": 1, "color": "RED", "shape": "STAR" },
+    { "row": 1, "column": 2, "color": "YELLOW", "shape": "STAR" },
+    { "row": 1, "column": 3, "color": "BLUE", "shape": "FLOWER" },
+    { "row": 1, "column": 4, "color": "YELLOW", "shape": "FLOWER" },
+
+    { "row": 2, "column": 0, "color": "RED", "shape": "CROSS" },
+    { "row": 2, "column": 4, "color": "GREEN", "shape": "FLOWER" },
+
+    { "row": 3, "column": 0, "color": "RED", "shape": "DIAMOND" },
+    { "row": 3, "column": 1, "color": "RED", "shape": "STAR" },
+    { "row": 3, "column": 2, "color": "GREEN", "shape": "CROSS" },
+    { "row": 3, "column": 3, "color": "YELLOW", "shape": "DIAMOND" },
+    { "row": 3, "column": 4, "color": "RED", "shape": "CROSS" },
+
+    { "row": 4, "column": 0, "color": "YELLOW", "shape": "FLOWER" },
+    { "row": 4, "column": 1, "color": "RED", "shape": "DIAMOND" },
+    { "row": 4, "column": 2, "color": "GREEN", "shape": "FLOWER" },
+    { "row": 4, "column": 3, "color": "BLUE", "shape": "DIAMOND" },
+    { "row": 4, "column": 4, "color": "YELLOW", "shape": "CROSS" },
+
+    { "row": 5, "column": 2, "color": "BLUE", "shape": "FLOWER" }
+  ]
+}

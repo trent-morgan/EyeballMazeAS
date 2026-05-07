@@ -1,0 +1,76 @@
+{
+  "width": 7,
+  "height": 8,
+  "eyeball": {
+    "row": 7,
+    "column": 1,
+    "direction": "UP"
+  },
+  "goals": [
+    { "row": 0, "column": 0 },
+    { "row": 2, "column": 2 },
+    { "row": 2, "column": 4 },
+    { "row": 3, "column": 0 },
+    { "row": 4, "column": 2 },
+    { "row": 5, "column": 5 }
+  ],
+  "squares": [
+    { "row": 0, "column": 0, "color": "BLUE", "shape": "FLOWER" },
+    { "row": 0, "column": 1, "color": "RED", "shape": "DIAMOND" },
+    { "row": 0, "column": 2, "color": "PURPLE", "shape": "LIGHTNING" },
+    { "row": 0, "column": 3, "color": "YELLOW", "shape": "CROSS" },
+    { "row": 0, "column": 4, "color": "PURPLE", "shape": "LIGHTNING" },
+    { "row": 0, "column": 5, "color": "GREEN", "shape": "STAR" },
+    { "row": 0, "column": 6, "color": "BLUE", "shape": "FLOWER" },
+
+    { "row": 1, "column": 0, "color": "GREEN", "shape": "STAR" },
+    { "row": 1, "column": 1, "color": "YELLOW", "shape": "FLOWER" },
+    { "row": 1, "column": 2, "color": "YELLOW", "shape": "STAR" },
+    { "row": 1, "column": 3, "color": "RED", "shape": "CROSS" },
+    { "row": 1, "column": 4, "color": "BLUE", "shape": "CROSS" },
+    { "row": 1, "column": 5, "color": "RED", "shape": "FLOWER" },
+    { "row": 1, "column": 6, "color": "GREEN", "shape": "DIAMOND" },
+
+    { "row": 2, "column": 0, "color": "YELLOW", "shape": "CROSS" },
+    { "row": 2, "column": 1, "color": "RED", "shape": "STAR" },
+    { "row": 2, "column": 2, "color": "GREEN", "shape": "CROSS" },
+    { "row": 2, "column": 3, "color": "GREEN", "shape": "STAR" },
+    { "row": 2, "column": 4, "color": "GREEN", "shape": "DIAMOND" },
+    { "row": 2, "column": 5, "color": "PURPLE", "shape": "LIGHTNING" },
+    { "row": 2, "column": 6, "color": "BLUE", "shape": "STAR" },
+
+    { "row": 3, "column": 0, "color": "GREEN", "shape": "STAR" },
+    { "row": 3, "column": 1, "color": "YELLOW", "shape": "FLOWER" },
+    { "row": 3, "column": 2, "color": "RED", "shape": "STAR" },
+    { "row": 3, "column": 3, "color": "BLUE", "shape": "DIAMOND" },
+    { "row": 3, "column": 4, "color": "YELLOW", "shape": "DIAMOND" },
+    { "row": 3, "column": 5, "color": "PURPLE", "shape": "LIGHTNING" },
+    { "row": 3, "column": 6, "color": "BLUE", "shape": "CROSS" },
+
+    { "row": 4, "column": 0, "color": "YELLOW", "shape": "CROSS" },
+    { "row": 4, "column": 1, "color": "RED", "shape": "STAR" },
+    { "row": 4, "column": 2, "color": "GREEN", "shape": "FLOWER" },
+    { "row": 4, "column": 3, "color": "PURPLE", "shape": "LIGHTNING" },
+    { "row": 4, "column": 4, "color": "YELLOW", "shape": "FLOWER" },
+    { "row": 4, "column": 5, "color": "BLUE", "shape": "STAR" },
+    { "row": 4, "column": 6, "color": "GREEN", "shape": "DIAMOND" },
+
+    { "row": 5, "column": 0, "color": "RED", "shape": "DIAMOND" },
+    { "row": 5, "column": 1, "color": "GREEN", "shape": "FLOWER" },
+    { "row": 5, "column": 2, "color": "YELLOW", "shape": "STAR" },
+    { "row": 5, "column": 3, "color": "BLUE", "shape": "DIAMOND" },
+    { "row": 5, "column": 4, "color": "BLUE", "shape": "STAR" },
+    { "row": 5, "column": 5, "color": "YELLOW", "shape": "FLOWER" },
+    { "row": 5, "column": 6, "color": "RED", "shape": "CROSS" },
+
+    { "row": 6, "column": 0, "color": "RED", "shape": "FLOWER" },
+    { "row": 6, "column": 1, "color": "BLUE", "shape": "DIAMOND" },
+    { "row": 6, "column": 2, "color": "GREEN", "shape": "CROSS" },
+    { "row": 6, "column": 3, "color": "YELLOW", "shape": "DIAMOND" },
+    { "row": 6, "column": 4, "color": "RED", "shape": "CROSS" },
+    { "row": 6, "column": 5, "color": "GREEN", "shape": "DIAMOND" },
+    { "row": 6, "column": 6, "color": "BLUE", "shape": "FLOWER" },
+
+    { "row": 7, "column": 1, "color": "BLUE", "shape": "CROSS" }
+  ]
+}

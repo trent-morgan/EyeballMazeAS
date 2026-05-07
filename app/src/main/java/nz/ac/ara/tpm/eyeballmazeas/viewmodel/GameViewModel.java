@@ -25,15 +25,27 @@ public class GameViewModel extends AndroidViewModel { // Changed to AndroidViewM
 
     public void loadAllLevels() {
         try {
-            // 1. Get a list of all files in the "levels" folder
             String[] levelFiles = getApplication().getAssets().list("levels");
 
             if (levelFiles != null) {
-                // 2. Loop through every file found
-                for (int i = 0; i < levelFiles.length; i++) {
-                    // Ensure we only load JSON files
-                    if (levelFiles[i].endsWith(".json")) {
-                        loadSpecificLevel("levels/" + levelFiles[i]);
+                // Convert to a List so we can use a custom sort
+                java.util.List<String> fileList = new java.util.ArrayList<>(java.util.Arrays.asList(levelFiles));
+
+                // Custom Sort: Extracts the number from "level_X.json"
+                java.util.Collections.sort(fileList, (o1, o2) -> {
+                    try {
+                        int n1 = Integer.parseInt(o1.replaceAll("[^0-9]", ""));
+                        int n2 = Integer.parseInt(o2.replaceAll("[^0-9]", ""));
+                        return Integer.compare(n1, n2);
+                    } catch (Exception e) {
+                        return o1.compareTo(o2); // Fallback to alpha if no number found
+                    }
+                });
+
+                for (String fileName : fileList) {
+                    if (fileName.endsWith(".json")) {
+                        Log.d("LEVEL_ORDER", "Loading in order: " + fileName);
+                        loadSpecificLevel("levels/" + fileName);
                     }
                 }
             }
