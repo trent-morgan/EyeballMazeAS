@@ -46,4 +46,8 @@ public class LevelHolder implements ILevelHolder {
 		this.currentLevel.checkGoal(row, column);
 	}
 
+	public void resetGoalsForCurrentLevel() {
+		this.currentLevel.resetGoalsForLevel();
+	}
+
 }

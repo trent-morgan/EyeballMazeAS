@@ -10,12 +10,14 @@ import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import nz.ac.ara.tpm.eyeballmazeas.R;
 import nz.ac.ara.tpm.eyeballmazeas.model.Color;
+import nz.ac.ara.tpm.eyeballmazeas.model.Message;
 import nz.ac.ara.tpm.eyeballmazeas.model.Shape;
 import nz.ac.ara.tpm.eyeballmazeas.viewmodel.GameViewModel;
 
@@ -71,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel.getGame().setCurrentLevel(levelIndex);
         viewModel.resetEyeballForLevel(levelIndex);
         viewModel.resetMoveCount();
+        viewModel.resetGoalsForCurrentLevel();
         updateMazeDisplay(levelIndex);
     }
 
@@ -163,7 +166,21 @@ public class MainActivity extends AppCompatActivity {
                 final int clickedRow = r;
                 final int clickedCol = c;
                 tile.setOnClickListener(v -> {
-                    viewModel.getGame().moveTo(clickedRow, clickedCol);
+                    Message feedback = viewModel.getGame().messageIfMovingTo(clickedRow, clickedCol);
+
+                    if (feedback == Message.OK) {
+                        // 2. If it's valid, perform the move
+                        viewModel.getGame().moveTo(clickedRow, clickedCol);
+
+                        // 3. Check if they just finished the level/game
+                        checkCompletion(levelIndex);
+                    } else {
+                        // 4. If it's illegal, show the specific error message
+                        // Use a Toast or a TextView to display the message
+                        String userFriendlyText = getFriendlyMessage(feedback);
+                        Toast.makeText(this, userFriendlyText, Toast.LENGTH_SHORT).show();                    }
+
+                    // Always refresh the display
                     updateMazeDisplay(levelIndex);
                 });
 
@@ -173,6 +190,36 @@ public class MainActivity extends AppCompatActivity {
         updateLabelDisplay(levelIndex);
     }
 
+    private void checkCompletion(int levelIndex) {
+        int remainingGoals = viewModel.getGame().getGoalCount();
+        int totalLevels = viewModel.getGame().getLevelCount();
+
+        if (remainingGoals == 0) {
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+
+            if (levelIndex + 1 < totalLevels) {
+                builder.setTitle("Level " + (levelIndex + 1) + " Cleared")
+                        .setMessage("Moves: " + viewModel.getMoveCount())
+                        .setCancelable(false)
+                        .setPositiveButton("Next Level", (dialog, which) -> {
+                            int next = levelIndex + 1;
+                            startLevel(next);
+                        })
+                        .setNegativeButton("Replay", (dialog, which) -> {
+                            startLevel(levelIndex);
+                        });
+            } else {
+                builder.setTitle("Level " + (levelIndex + 1) + " Cleared")
+                        .setMessage("Moves: " + viewModel.getMoveCount())
+                        .setCancelable(false)
+                        .setPositiveButton("Start Over", (dialog, which) -> {
+                            startLevel(0);
+                        })
+                        .setNegativeButton("Close", null);
+            }
+            builder.show();
+        }
+    }
     private void updateGoals() {
         if (mazeGrid == null) return;
 
@@ -254,6 +301,19 @@ public class MainActivity extends AppCompatActivity {
             case "DOWN" -> 180f;
             case "LEFT" -> 270f;
             default -> 0f;
+        };
+    }
+
+    private String getFriendlyMessage(Message message) {
+        if (message == null) return "";
+
+        return switch (message) {
+            case OK -> "Move successful!";
+            case MOVING_DIAGONALLY -> "You can only move in straight lines.";
+            case BACKWARDS_MOVE -> "No looking back! You can't move backwards.";
+            case MOVING_OVER_BLANK -> "You can't jump over empty spaces.";
+            case DIFFERENT_SHAPE_OR_COLOR -> "You must match the color or the shape!";
+            default -> "Illegal move!";
         };
     }
 }

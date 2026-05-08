@@ -125,6 +125,8 @@ public class GameViewModel extends AndroidViewModel {
         }
     }
 
+    public void resetGoalsForCurrentLevel () {game.resetGoalsForCurrentLevel();}
+
     public Game getGame() {
         return this.game;
     }

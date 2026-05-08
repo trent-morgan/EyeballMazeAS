@@ -7,12 +7,25 @@ public class GoalHolder implements IGoalHolder {
 	private List<Position> goals = new ArrayList<>();
 	private List<Position> completedGoals = new ArrayList<>();
 
+	//NEW ARRAY TO HOLD LIST OF INITIAL GOALS
+	private List<Position> initialGoals = new ArrayList<>();
 	
 	@Override
 	public void addGoal(int row, int column) {
 		Position goal = new Position(row, column);
 		if (!goals.contains(goal)) {
 		    goals.add(goal);
+			initialGoals.add(new Position(row, column));
+		}
+
+	}
+
+	//NEW METHOD TO RESET GOALS
+	public void resetGoals() {
+		goals.clear();
+		completedGoals.clear();
+		for (Position p : initialGoals) {
+			goals.add(new Position(p.getRow(), p.getColumn()));
 		}
 	}
 

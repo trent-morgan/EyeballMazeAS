@@ -205,6 +205,7 @@ public class Game implements IMoving, IEyeballHolder {
 
 	@Override
 	public void moveTo(int destinationRow, int destinationColumn) {
+
 		if (this.canMoveTo(destinationRow, destinationColumn)) {
 			this.moveCount ++;
 
@@ -243,5 +244,9 @@ public class Game implements IMoving, IEyeballHolder {
 
 	public void resetMoveCount() {
 		this.moveCount = 0;
+	}
+
+	public void resetGoalsForCurrentLevel() {
+		this.levelHolder.resetGoalsForCurrentLevel();
 	}
 }

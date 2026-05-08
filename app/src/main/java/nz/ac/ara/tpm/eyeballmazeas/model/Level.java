@@ -60,4 +60,8 @@ public class Level {
 		this.goalHolder.checkGoal(row, column);
 	}
 
+	public void resetGoalsForLevel() {
+		this.goalHolder.resetGoals();
+	}
+
 }
