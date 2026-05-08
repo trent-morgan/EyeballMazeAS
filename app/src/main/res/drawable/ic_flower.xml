@@ -4,8 +4,23 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+
+    <!-- Petals (outer circles - stroke only) -->
     <path
         android:strokeColor="#000000"
         android:strokeWidth="1"
-        android:pathData="M12,12m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0 M12,7m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0 M12,17m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0 M17,12m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0 M7,12m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+        android:fillColor="@android:color/transparent"
+        android:pathData="
+        M12,6m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0
+        M12,18m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0
+        M18,12m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0
+        M6,12m-4,0a4,4 0,1 1,8 0a4,4 0,1 1,-8 0" />
+
+    <!-- Center circle (FILLED) -->
+    <path
+        android:fillColor="#000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="1.2"
+        android:pathData="M12,12m-4.5,0a4.5,4.5 0,1 1,9 0a4.5,4.5 0,1 1,-9 0" />
+
 </vector>

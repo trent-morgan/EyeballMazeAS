@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 1. Base Background Color -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+
+    <!-- 2. The Corner Triangles -->
+    <item>
+        <vector
+            android:width="100dp"
+            android:height="100dp"
+            android:viewportWidth="100"
+            android:viewportHeight="100">
+
+            <!-- Top Left: Move 30 right, 30 down -->
+            <path
+                android:fillColor="#000000"
+                android:pathData="M0,0 L30,0 L0,30 Z" />
+
+            <!-- Top Right: Move 30 left (100-30=70), 30 down -->
+            <path
+                android:fillColor="#000000"
+                android:pathData="M100,0 L70,0 L100,30 Z" />
+
+            <!-- Bottom Left: Move 30 right, 30 up (100-30=70) -->
+            <path
+                android:fillColor="#000000"
+                android:pathData="M0,100 L30,100 L0,70 Z" />
+
+            <!-- Bottom Right: Move 30 left (70), 30 up (70) -->
+            <path
+                android:fillColor="#000000"
+                android:pathData="M100,100 L70,100 L100,70 Z" />
+        </vector>
+    </item>
+
+    <!-- 3. Outer Border -->
+    <item>
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="6dp"
+                android:color="#000000" />
+            <solid android:color="@android:color/transparent" />
+        </shape>
+    </item>
+</layer-list>

@@ -29,6 +29,7 @@ public class Game implements IMoving, IEyeballHolder {
 	
 	public void setCurrentLevel(int levelNumber) {
 		this.levelHolder.setCurrentLevel(levelNumber);
+
 	}
 	
 	public int getLevelCount() {
@@ -204,9 +205,9 @@ public class Game implements IMoving, IEyeballHolder {
 
 	@Override
 	public void moveTo(int destinationRow, int destinationColumn) {
-		
 		if (this.canMoveTo(destinationRow, destinationColumn)) {
-			
+			this.moveCount ++;
+
 			int oldRow = this.getEyeballRow();
 		    int oldCol = this.getEyeballColumn();
 

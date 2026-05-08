@@ -4,21 +4,29 @@ import android.app.Application;
 import android.util.Log;
 
 import androidx.lifecycle.AndroidViewModel; // Updated this
+
+import nz.ac.ara.tpm.eyeballmazeas.model.Direction;
 import nz.ac.ara.tpm.eyeballmazeas.model.Game;
+import nz.ac.ara.tpm.eyeballmazeas.model.Message;
 import nz.ac.ara.tpm.eyeballmazeas.model.PlayableSquare;
 import nz.ac.ara.tpm.eyeballmazeas.model.Color;
 import nz.ac.ara.tpm.eyeballmazeas.model.Shape;
+import nz.ac.ara.tpm.eyeballmazeas.model.Square;
 
 import com.google.gson.Gson;
 
 import java.util.List;
 
-public class GameViewModel extends AndroidViewModel { // Changed to AndroidViewModel
+public class GameViewModel extends AndroidViewModel {
 
     private final Game game;
 
+    // New List to remember the start positions
+    private final java.util.List<EyeballData> levelStarts = new java.util.ArrayList<>();
+
+    // Inside GameViewModel.java
     public GameViewModel(Application application) {
-        super(application); // Added this mandatory line
+        super(application);
         game = new Game();
         loadAllLevels();
     }
@@ -28,7 +36,6 @@ public class GameViewModel extends AndroidViewModel { // Changed to AndroidViewM
             String[] levelFiles = getApplication().getAssets().list("levels");
 
             if (levelFiles != null) {
-                // Convert to a List so we can use a custom sort
                 java.util.List<String> fileList = new java.util.ArrayList<>(java.util.Arrays.asList(levelFiles));
 
                 // Custom Sort: Extracts the number from "level_X.json"
@@ -79,7 +86,10 @@ public class GameViewModel extends AndroidViewModel { // Changed to AndroidViewM
 
             // 4. Load the Eyeball starting position
             if (data.eyeball != null) {
-                // Assuming your Direction enum matches "UP", "DOWN", etc.
+                // CRITICAL: Ensure this list grows at the exact same pace as game.addLevel
+                levelStarts.add(data.eyeball);
+
+                // Set initial state for the VERY last level loaded
                 nz.ac.ara.tpm.eyeballmazeas.model.Direction dir =
                         nz.ac.ara.tpm.eyeballmazeas.model.Direction.valueOf(data.eyeball.direction.toUpperCase());
                 game.addEyeball(data.eyeball.row, data.eyeball.column, dir);
@@ -103,6 +113,18 @@ public class GameViewModel extends AndroidViewModel { // Changed to AndroidViewM
         return json;
     }
 
+    public void resetEyeballForLevel(int levelIndex) {
+        if (levelIndex >= 0 && levelIndex < levelStarts.size()) {
+            EyeballData start = levelStarts.get(levelIndex);
+
+            nz.ac.ara.tpm.eyeballmazeas.model.Direction dir =
+                    nz.ac.ara.tpm.eyeballmazeas.model.Direction.valueOf(start.direction.toUpperCase());
+
+            // This forces the Game's EyeballHolder to move to the correct spot
+            game.addEyeball(start.row, start.column, dir);
+        }
+    }
+
     public Game getGame() {
         return this.game;
     }
@@ -116,6 +138,63 @@ public class GameViewModel extends AndroidViewModel { // Changed to AndroidViewM
         List<GoalData> goals;   // Matches the "goals" list in JSON
         List<SquareData> squares;
     }
+
+    // Inside GameViewModel.java
+    public boolean isGoalActive(int row, int col) {
+        // This simply tells the UI: "Is there a goal here right now?"
+        return game.hasGoalAt(row, col);
+    }
+
+    public boolean isGoalFinished(int row, int col) {
+        // If the model doesn't give us the 'completedGoals' list,
+        // and you can't change the model to add a getter,
+        // we have to check if it's NOT in the active list
+        // but the level design says it WAS a goal.
+
+        // Most Eyeball Maze models have a way to check the level's static data:
+        return !game.hasGoalAt(row, col) && game.hasGoalAt(row, col);
+    }
+
+    public int getCompletedGoalCount() {
+        return game.getCompletedGoalCount();
+    }
+
+    public void addSquare(Square square, int row, int column) {
+        game.addSquare(square, row, column);
+    }
+
+    public Color getColorAt(int row, int column) {
+        return game.getColorAt(row, column);
+    }
+
+    public Shape getShapeAt(int row, int column) {
+        return game.getShapeAt(row, column);
+    }
+
+    public void addEyeball(int row, int column, Direction direction) {
+        game.addEyeball(row,column,direction);
+    }
+
+    public int getEyeballRow() {
+        return game.getEyeballRow();
+    }
+
+    public int getEyeballColumn() {
+        return game.getEyeballColumn();
+    }
+
+    public void moveTo(int destinationRow, int destinationColumn) {
+        game.moveTo(destinationRow,destinationColumn);
+    }
+
+    public int getMoveCount() {
+        return game.getMoveCount();
+    }
+
+    public void resetMoveCount() {
+        game.resetMoveCount();
+    }
+
 
     private static class GoalData {
         int row;

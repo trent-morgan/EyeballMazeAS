@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -21,6 +22,7 @@ import nz.ac.ara.tpm.eyeballmazeas.viewmodel.GameViewModel;
 public class MainActivity extends AppCompatActivity {
 
     private GameViewModel viewModel;
+    private GridLayout mazeGrid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,124 +30,168 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         viewModel = new ViewModelProvider(this).get(GameViewModel.class);
+        mazeGrid = findViewById(R.id.mazeGrid);
 
-        // 1. Find the container
         LinearLayout container = findViewById(R.id.levelButtonContainer);
-
-        // FIX: Use the actual count from the Game model instead of a hardcoded '3'
         int levelCount = viewModel.getGame().getLevelCount();
 
         for (int i = 0; i < levelCount; i++) {
-            int levelIndex = i; // The internal index (0, 1, 2...)
-            int levelNum = i + 1; // The display number (1, 2, 3...)
+            int levelIndex = i;
+            int levelNum = i + 1;
 
             Button btn = new Button(this);
-
             int size = (int) (60 * getResources().getDisplayMetrics().density);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
             params.setMargins(8, 8, 8, 8);
             btn.setLayoutParams(params);
 
             btn.setText(String.valueOf(levelNum));
+            btn.setTag(i);
 
-            btn.setOnClickListener(v -> {
-                Log.d("LEVEL_CLICK", "Loading Index: " + levelIndex);
-                // We no longer need to call loadLevelData here if you preload
-                // in the ViewModel constructor as we discussed.
-                updateMazeDisplay(levelIndex);
-//                updateLabelDisplay(levelIndex);
-            });
+            btn.setOnClickListener(v -> startLevel(levelIndex));
 
             container.addView(btn);
         }
 
-        // Initialize the display with the first level
-        updateMazeDisplay(0);
+        startLevel(0);
 
         CheckBox checkSound = findViewById(R.id.checkSound);
         Button btnRules = findViewById(R.id.btnRules);
 
-        checkSound.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            Log.d("GAME_SETTINGS", "Sound: " + isChecked);
-        });
+        checkSound.setOnCheckedChangeListener((buttonView, isChecked) -> Log.d("GAME_SETTINGS", "Sound: " + isChecked));
 
-        btnRules.setOnClickListener(v -> {
-            new androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle("How to Play")
-                    .setMessage("Move the eyeball to the goal by matching colors or shapes!")
-                    .setPositiveButton("Got it!", null)
-                    .show();
-        });
+        btnRules.setOnClickListener(v -> new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("How to Play")
+                .setMessage("Move the eyeball to the goal by matching colors or shapes!")
+                .setPositiveButton("Got it!", null)
+                .show());
+    }
+
+    private void startLevel(int levelIndex) {
+        viewModel.getGame().setCurrentLevel(levelIndex);
+        viewModel.resetEyeballForLevel(levelIndex);
+        viewModel.resetMoveCount();
+        updateMazeDisplay(levelIndex);
     }
 
     private void updateMazeDisplay(int levelIndex) {
-        // Set the active level in the model before drawing
-        viewModel.getGame().setCurrentLevel(levelIndex);
+        if (mazeGrid == null) mazeGrid = findViewById(R.id.mazeGrid);
+        mazeGrid.removeAllViews();
 
         if (viewModel.getGame() == null || viewModel.getGame().getLevelWidth() == 0) {
             Log.e("UI_ERROR", "Level data missing for index: " + levelIndex);
             return;
         }
 
-        GridLayout mazeGrid = findViewById(R.id.mazeGrid);
-        mazeGrid.removeAllViews();
-
+        int eyeRow = viewModel.getGame().getEyeballRow();
+        int eyeCol = viewModel.getGame().getEyeballColumn();
         int rows = viewModel.getGame().getLevelHeight();
         int cols = viewModel.getGame().getLevelWidth();
 
         mazeGrid.setRowCount(rows);
         mazeGrid.setColumnCount(cols);
 
-//        float density = getResources().getDisplayMetrics().density;
-//
-//        int densityInt = ((3 * viewModel.getGame().getLevelHeight()) + (2 * viewModel.getGame().getLevelWidth()));
-//        int squareSize = (int) (((100) - densityInt) * density);
-        int squareSize = (int) (170);
-
+        int squareSize = switch (cols) {
+            case 6 -> 200;
+            case 5 -> 230;
+            case 4 -> 280;
+            default -> 170;
+        };
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 Color squareColor = viewModel.getGame().getColorAt(r, c);
                 Shape squareShape = viewModel.getGame().getShapeAt(r, c);
 
-                ImageView squareView = new ImageView(this);
-                squareView.setPadding(12, 12, 12, 12); // Padding inside the border
-
-                GridLayout.Spec rowSpec = GridLayout.spec(r, 1f);
-                GridLayout.Spec colSpec = GridLayout.spec(c, 1f);
-                GridLayout.LayoutParams params = new GridLayout.LayoutParams(rowSpec, colSpec);
-
+                FrameLayout tile = new FrameLayout(this);
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams(
+                        GridLayout.spec(r, 1f),
+                        GridLayout.spec(c, 1f)
+                );
                 params.width = squareSize;
                 params.height = squareSize;
                 params.setMargins(1, 1, 1, 1);
-                squareView.setLayoutParams(params);
+                tile.setLayoutParams(params);
 
-                if (squareColor != null) {
-                    squareView.setVisibility(View.VISIBLE);
-
-                    // FIX: Set the border XML as the background
-                    squareView.setBackgroundResource(R.drawable.square_border);
-
-                    int colorInt = getSquareColor(squareColor.toString());
-
-                    if (squareShape != null) {
-                        squareView.setImageResource(getShapeResource(squareShape.toString()));
-
-                        // TINT logic for the Shape (keeps background white/border black)
-                        if (squareShape.toString().equalsIgnoreCase("CHARACTER")) {
-                            squareView.setImageTintList(android.content.res.ColorStateList.valueOf(android.graphics.Color.BLACK));
-                        } else {
-                            squareView.setImageTintList(android.content.res.ColorStateList.valueOf(colorInt));
-                        }
-                    }
-                } else {
-                    squareView.setVisibility(View.INVISIBLE);
+                // 1. If the square is null, keep it transparent and skip the rest
+                if (squareColor == null) {
+                    tile.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+                    mazeGrid.addView(tile);
+                    continue;
                 }
 
-                mazeGrid.addView(squareView);
+                // 2. Set default border
+                tile.setBackgroundResource(R.drawable.square_border);
+
+                // --- LAYER 1: BASE SHAPE ---
+                if (squareShape != null) {
+                    ImageView shapeImage = new ImageView(this);
+                    shapeImage.setLayoutParams(new FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT));
+                    shapeImage.setPadding(12, 12, 12, 12);
+                    shapeImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    shapeImage.setImageResource(getShapeResource(squareShape.toString()));
+
+                    int colorInt = getSquareColor(squareColor.toString());
+                    shapeImage.setImageTintList(android.content.res.ColorStateList.valueOf(colorInt));
+                    tile.addView(shapeImage);
+                }
+
+                // --- LAYER 2: GOAL OVERLAY ---
+                if (viewModel.isGoalActive(r, c)) {
+                    tile.setBackgroundResource(R.drawable.bg_goal_stripes);
+                }
+
+                // --- LAYER 3: EYEBALL OVERLAY ---
+                if (r == eyeRow && c == eyeCol) {
+                    ImageView eyeballOverlay = new ImageView(this);
+                    eyeballOverlay.setLayoutParams(new FrameLayout.LayoutParams(
+                            FrameLayout.LayoutParams.MATCH_PARENT,
+                            FrameLayout.LayoutParams.MATCH_PARENT));
+                    eyeballOverlay.setImageResource(R.drawable.ic_eyeball);
+                    eyeballOverlay.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    eyeballOverlay.setImageTintList(null);
+
+                    String direction = viewModel.getGame().getEyeballDirection().toString();
+                    eyeballOverlay.setRotation(getRotationForDirection(direction));
+
+                    tile.addView(eyeballOverlay);
+                }
+
+                // 3. Click Listener
+                final int clickedRow = r;
+                final int clickedCol = c;
+                tile.setOnClickListener(v -> {
+                    viewModel.getGame().moveTo(clickedRow, clickedCol);
+                    updateMazeDisplay(levelIndex);
+                });
+
+                mazeGrid.addView(tile);
             }
         }
         updateLabelDisplay(levelIndex);
+    }
+
+    private void updateGoals() {
+        if (mazeGrid == null) return;
+
+        int cols = viewModel.getGame().getLevelWidth();
+
+        for (int i = 0; i < mazeGrid.getChildCount(); i++) {
+            View child = mazeGrid.getChildAt(i);
+            if (child instanceof FrameLayout) {
+                int r = i / cols;
+                int c = i % cols;
+
+                // Since hitting a goal removes it from the list in your model:
+                if (viewModel.isGoalActive(r, c)) {
+                    child.setBackgroundResource(R.drawable.bg_goal_stripes);
+                } else {
+                    child.setBackgroundResource(R.drawable.square_border);
+                }
+            }
+        }
     }
 
     private int getSquareColor(String colorName) {
@@ -168,29 +214,46 @@ public class MainActivity extends AppCompatActivity {
             case "DIAMOND" -> R.drawable.ic_diamond;
             case "CROSS" -> R.drawable.ic_cross;
             case "LIGHTNING" -> R.drawable.ic_lightning;
-            case "CHARACTER" -> R.drawable.ic_eyeball; // Added your eyeball character
+            case "EYEBALL" -> R.drawable.ic_eyeball;
             default -> 0;
         };
     }
 
     private void updateLabelDisplay(int levelIndex) {
-        // 1. Find the views
         TextView txtLevel = findViewById(R.id.txtLevel);
         TextView txtMoves = findViewById(R.id.txtMoves);
         TextView txtGoals = findViewById(R.id.txtGoals);
 
-        // 2. Extract data from the model
-        // We use levelIndex + 1 for display because users prefer 1, 2, 3 over 0, 1, 2
-        int levelNum = levelIndex + 1;
+        int activeGoals = viewModel.getGame().getGoalCount();
+        int completedGoals = viewModel.getGame().getCompletedGoalCount();
 
-        // Assuming these methods exist in your Game model
-        int moves = viewModel.getGame().getMoveCount();
-        int goalsReached = viewModel.getGame().getCompletedGoalCount();
-        int goalsTotal = viewModel.getGame().getGoalCount();
+        txtLevel.setText("Level: " + (levelIndex + 1));
+        txtMoves.setText("Moves: " + viewModel.getGame().getMoveCount());
+        txtGoals.setText("Goals: " + completedGoals + "/" + (activeGoals + completedGoals));
 
-        // 3. Set the text
-        txtLevel.setText("Level: " + levelNum);
-        txtMoves.setText("Moves: " + moves);
-        txtGoals.setText("Goals: " + goalsReached + "/" + goalsTotal);
+        LinearLayout container = findViewById(R.id.levelButtonContainer);
+        for (int i = 0; i < container.getChildCount(); i++) {
+            View view = container.getChildAt(i);
+            if (view instanceof Button btn) {
+                if (btn.getTag() != null && (int) btn.getTag() == levelIndex) {
+                    btn.setBackgroundColor(android.graphics.Color.BLUE);
+                    btn.setTextColor(android.graphics.Color.WHITE);
+                } else {
+                    btn.setBackgroundColor(android.graphics.Color.LTGRAY);
+                    btn.setTextColor(android.graphics.Color.BLACK);
+                }
+            }
+        }
+    }
+
+    private float getRotationForDirection(String direction) {
+        if (direction == null) return 0f;
+        return switch (direction.toUpperCase()) {
+            case "UP" -> 0f;
+            case "RIGHT" -> 90f;
+            case "DOWN" -> 180f;
+            case "LEFT" -> 270f;
+            default -> 0f;
+        };
     }
 }
