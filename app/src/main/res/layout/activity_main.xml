@@ -50,7 +50,8 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="8dp" />
+            android:padding="8dp"
+            android:soundEffectsEnabled="false" />
     </HorizontalScrollView>
 
     <LinearLayout
@@ -112,7 +113,8 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:columnCount="1"
-            android:rowCount="1" />
+            android:rowCount="1"
+            android:soundEffectsEnabled="false" />
     </RelativeLayout>
 
     <LinearLayout
@@ -134,7 +136,8 @@
             android:layout_weight="1"
             android:text="SOUND"
             android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:soundEffectsEnabled="false" />
 
         <Button
             android:id="@+id/btnRules"
@@ -142,7 +145,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="RULES" />
+            android:text="RULES"
+            android:soundEffectsEnabled="false" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

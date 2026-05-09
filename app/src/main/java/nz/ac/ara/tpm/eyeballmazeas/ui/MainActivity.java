@@ -1,5 +1,6 @@
 package nz.ac.ara.tpm.eyeballmazeas.ui;
 
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -26,6 +27,8 @@ public class MainActivity extends AppCompatActivity {
     private GameViewModel viewModel;
     private GridLayout mazeGrid;
 
+    private boolean isSoundEnabled = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
             int levelNum = i + 1;
 
             Button btn = new Button(this);
+            btn.setSoundEffectsEnabled(false);
             int size = (int) (60 * getResources().getDisplayMetrics().density);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
             params.setMargins(8, 8, 8, 8);
@@ -58,15 +62,20 @@ public class MainActivity extends AppCompatActivity {
         startLevel(0);
 
         CheckBox checkSound = findViewById(R.id.checkSound);
-        Button btnRules = findViewById(R.id.btnRules);
+        checkSound.setChecked(true); // Default to on
+        checkSound.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            isSoundEnabled = isChecked;
+            Log.d("GAME_SETTINGS", "Sound enabled: " + isChecked);
+        });
 
-        checkSound.setOnCheckedChangeListener((buttonView, isChecked) -> Log.d("GAME_SETTINGS", "Sound: " + isChecked));
+        Button btnRules = findViewById(R.id.btnRules);
 
         btnRules.setOnClickListener(v -> new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("How to Play")
                 .setMessage("Move the eyeball to the goal by matching colors or shapes!")
                 .setPositiveButton("Got it!", null)
                 .show());
+
     }
 
     private void startLevel(int levelIndex) {
@@ -107,6 +116,8 @@ public class MainActivity extends AppCompatActivity {
                 Shape squareShape = viewModel.getGame().getShapeAt(r, c);
 
                 FrameLayout tile = new FrameLayout(this);
+                tile.setSoundEffectsEnabled(false);
+
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams(
                         GridLayout.spec(r, 1f),
                         GridLayout.spec(c, 1f)
@@ -170,13 +181,13 @@ public class MainActivity extends AppCompatActivity {
 
                     if (feedback == Message.OK) {
                         // 2. If it's valid, perform the move
+                        playSound(R.raw.move);
                         viewModel.getGame().moveTo(clickedRow, clickedCol);
 
                         // 3. Check if they just finished the level/game
                         checkCompletion(levelIndex);
                     } else {
-                        // 4. If it's illegal, show the specific error message
-                        // Use a Toast or a TextView to display the message
+                        playSound(R.raw.invalid_move);
                         String userFriendlyText = getFriendlyMessage(feedback);
                         Toast.makeText(this, userFriendlyText, Toast.LENGTH_SHORT).show();                    }
 
@@ -195,6 +206,8 @@ public class MainActivity extends AppCompatActivity {
         int totalLevels = viewModel.getGame().getLevelCount();
 
         if (remainingGoals == 0) {
+            playSound(R.raw.level_complete);
+
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
 
             if (levelIndex + 1 < totalLevels) {
@@ -208,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
                         .setNegativeButton("Replay", (dialog, which) -> {
                             startLevel(levelIndex);
                         });
+
             } else {
                 builder.setTitle("Level " + (levelIndex + 1) + " Cleared")
                         .setMessage("Moves: " + viewModel.getMoveCount())
@@ -315,5 +329,13 @@ public class MainActivity extends AppCompatActivity {
             case DIFFERENT_SHAPE_OR_COLOR -> "You must match the color or the shape!";
             default -> "Illegal move!";
         };
+    }
+
+    private void playSound(int soundRawId) {
+        if (isSoundEnabled) {
+            MediaPlayer mp = MediaPlayer.create(this, soundRawId);
+            mp.setOnCompletionListener(MediaPlayer::release); // Free up memory when done
+            mp.start();
+        }
     }
 }
