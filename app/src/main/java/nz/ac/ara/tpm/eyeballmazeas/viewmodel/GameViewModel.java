@@ -21,10 +21,11 @@ public class GameViewModel extends AndroidViewModel {
 
     private final Game game;
 
-    // New List to remember the start positions
+    //LIST FOR KEEPING STARTING EYEBALL POSITION
     private final java.util.List<EyeballData> levelStarts = new java.util.ArrayList<>();
 
-    // Inside GameViewModel.java
+    private int currentLevelIndex = 0;
+
     public GameViewModel(Application application) {
         super(application);
         game = new Game();
@@ -38,14 +39,14 @@ public class GameViewModel extends AndroidViewModel {
             if (levelFiles != null) {
                 java.util.List<String> fileList = new java.util.ArrayList<>(java.util.Arrays.asList(levelFiles));
 
-                // Custom Sort: Extracts the number from "level_X.json"
+                //TO STOP LEVEL BEING SORTED ALPHABETICALLY (11 < 9 WOULD BE WRONG)
                 java.util.Collections.sort(fileList, (o1, o2) -> {
                     try {
                         int n1 = Integer.parseInt(o1.replaceAll("[^0-9]", ""));
                         int n2 = Integer.parseInt(o2.replaceAll("[^0-9]", ""));
                         return Integer.compare(n1, n2);
                     } catch (Exception e) {
-                        return o1.compareTo(o2); // Fallback to alpha if no number found
+                        return o1.compareTo(o2);
                     }
                 });
 
@@ -61,22 +62,18 @@ public class GameViewModel extends AndroidViewModel {
         }
     }
 
-    // Refactor your loading logic into this helper
     private void loadSpecificLevel(String path) {
         String jsonString = loadJSONFromAsset(getApplication(), path);
         if (jsonString != null) {
             Gson gson = new Gson();
             LevelData data = gson.fromJson(jsonString, LevelData.class);
 
-            // 1. Initialize the level structure
             game.addLevel(data.height, data.width);
 
-            // 2. Load the Squares (for the grid)
             for (SquareData s : data.squares) {
                 game.addSquare(new PlayableSquare(s.color, s.shape), s.row, s.column);
             }
 
-            // 3. FIX: Load the Goals from the "goals" list in JSON
             if (data.goals != null) {
                 for (GoalData g : data.goals) {
                     game.addGoal(g.row, g.column);
@@ -84,12 +81,9 @@ public class GameViewModel extends AndroidViewModel {
                 }
             }
 
-            // 4. Load the Eyeball starting position
             if (data.eyeball != null) {
-                // CRITICAL: Ensure this list grows at the exact same pace as game.addLevel
                 levelStarts.add(data.eyeball);
 
-                // Set initial state for the VERY last level loaded
                 nz.ac.ara.tpm.eyeballmazeas.model.Direction dir =
                         nz.ac.ara.tpm.eyeballmazeas.model.Direction.valueOf(data.eyeball.direction.toUpperCase());
                 game.addEyeball(data.eyeball.row, data.eyeball.column, dir);
@@ -120,7 +114,6 @@ public class GameViewModel extends AndroidViewModel {
             nz.ac.ara.tpm.eyeballmazeas.model.Direction dir =
                     nz.ac.ara.tpm.eyeballmazeas.model.Direction.valueOf(start.direction.toUpperCase());
 
-            // This forces the Game's EyeballHolder to move to the correct spot
             game.addEyeball(start.row, start.column, dir);
         }
     }
@@ -131,30 +124,58 @@ public class GameViewModel extends AndroidViewModel {
         return this.game;
     }
 
-    // These inner classes tell GSON how to read your level_1.json file
-    // Inside GameViewModel.java
+
     private static class LevelData {
         int width;
         int height;
-        EyeballData eyeball;    // Matches the "eyeball" object in JSON
-        List<GoalData> goals;   // Matches the "goals" list in JSON
+        EyeballData eyeball;
+        List<GoalData> goals;
         List<SquareData> squares;
     }
-
-    // Inside GameViewModel.java
-    public boolean isGoalActive(int row, int col) {
-        // This simply tells the UI: "Is there a goal here right now?"
-        return game.hasGoalAt(row, col);
+    //JSON DATA HOLDERS
+    private static class GoalData {
+        int row;
+        int column;
     }
 
-    public boolean isGoalFinished(int row, int col) {
-        // If the model doesn't give us the 'completedGoals' list,
-        // and you can't change the model to add a getter,
-        // we have to check if it's NOT in the active list
-        // but the level design says it WAS a goal.
+    private static class EyeballData {
+        int row;
+        int column;
+        String direction;
+    }
 
-        // Most Eyeball Maze models have a way to check the level's static data:
-        return !game.hasGoalAt(row, col) && game.hasGoalAt(row, col);
+    private static class SquareData {
+        int row;
+        int column;
+        Color color;
+        Shape shape;
+    }
+
+    //GAME CLASS ACCESSORS
+    public int getLevelWidth() {
+        return game.getLevelWidth();
+    }
+
+    public int getLevelHeight() {
+        return game.getLevelHeight();
+    }
+
+
+    public void setCurrentLevel(int currentLevelIndex) {
+        game.setCurrentLevel(currentLevelIndex);
+        this.currentLevelIndex = currentLevelIndex;
+    }
+
+    public int getCurrentLevel() {
+        return this.currentLevelIndex;
+    }
+
+    public int getLevelCount() { return game.getLevelCount();}
+
+    public int getGoalCount() { return game.getGoalCount();}
+
+    public boolean isGoalActive(int row, int col) {
+        return game.hasGoalAt(row, col);
     }
 
     public int getCompletedGoalCount() {
@@ -185,6 +206,12 @@ public class GameViewModel extends AndroidViewModel {
         return game.getEyeballColumn();
     }
 
+    public Direction getEyeballDirection() {
+        return game.getEyeballDirection();
+    }
+
+    public Message messageIfMovingTo(int row, int col) { return game.messageIfMovingTo(row, col); }
+
     public void moveTo(int destinationRow, int destinationColumn) {
         game.moveTo(destinationRow,destinationColumn);
     }
@@ -198,21 +225,8 @@ public class GameViewModel extends AndroidViewModel {
     }
 
 
-    private static class GoalData {
-        int row;
-        int column;
-    }
 
-    private static class EyeballData {
-        int row;
-        int column;
-        String direction; // Will be converted to your Direction Enum
-    }
 
-    private static class SquareData {
-        int row;
-        int column;
-        Color color;
-        Shape shape;
-    }
+
+
 }

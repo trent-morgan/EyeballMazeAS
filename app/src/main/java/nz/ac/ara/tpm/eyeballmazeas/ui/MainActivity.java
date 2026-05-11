@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         mazeGrid = findViewById(R.id.mazeGrid);
 
         LinearLayout container = findViewById(R.id.levelButtonContainer);
-        int levelCount = viewModel.getGame().getLevelCount();
+        int levelCount = viewModel.getLevelCount();
 
         for (int i = 0; i < levelCount; i++) {
             int levelIndex = i;
@@ -62,11 +62,15 @@ public class MainActivity extends AppCompatActivity {
         startLevel(0);
 
         CheckBox checkSound = findViewById(R.id.checkSound);
-        checkSound.setChecked(true); // Default to on
+        checkSound.setChecked(true);
         checkSound.setOnCheckedChangeListener((buttonView, isChecked) -> {
             isSoundEnabled = isChecked;
             Log.d("GAME_SETTINGS", "Sound enabled: " + isChecked);
         });
+
+        Button btnRestart = findViewById(R.id.btnRestart);
+
+        btnRestart.setOnClickListener(v -> startLevel(viewModel.getCurrentLevel()));
 
         Button btnRules = findViewById(R.id.btnRules);
 
@@ -79,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startLevel(int levelIndex) {
-        viewModel.getGame().setCurrentLevel(levelIndex);
+        viewModel.setCurrentLevel(levelIndex);
         viewModel.resetEyeballForLevel(levelIndex);
         viewModel.resetMoveCount();
         viewModel.resetGoalsForCurrentLevel();
@@ -90,15 +94,15 @@ public class MainActivity extends AppCompatActivity {
         if (mazeGrid == null) mazeGrid = findViewById(R.id.mazeGrid);
         mazeGrid.removeAllViews();
 
-        if (viewModel.getGame() == null || viewModel.getGame().getLevelWidth() == 0) {
+        if (viewModel.getGame() == null || viewModel.getLevelWidth() == 0) {
             Log.e("UI_ERROR", "Level data missing for index: " + levelIndex);
             return;
         }
 
-        int eyeRow = viewModel.getGame().getEyeballRow();
-        int eyeCol = viewModel.getGame().getEyeballColumn();
-        int rows = viewModel.getGame().getLevelHeight();
-        int cols = viewModel.getGame().getLevelWidth();
+        int eyeRow = viewModel.getEyeballRow();
+        int eyeCol = viewModel.getEyeballColumn();
+        int rows = viewModel.getLevelHeight();
+        int cols = viewModel.getLevelWidth();
 
         mazeGrid.setRowCount(rows);
         mazeGrid.setColumnCount(cols);
@@ -112,8 +116,8 @@ public class MainActivity extends AppCompatActivity {
 
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                Color squareColor = viewModel.getGame().getColorAt(r, c);
-                Shape squareShape = viewModel.getGame().getShapeAt(r, c);
+                Color squareColor = viewModel.getColorAt(r, c);
+                Shape squareShape = viewModel.getShapeAt(r, c);
 
                 FrameLayout tile = new FrameLayout(this);
                 tile.setSoundEffectsEnabled(false);
@@ -127,17 +131,14 @@ public class MainActivity extends AppCompatActivity {
                 params.setMargins(1, 1, 1, 1);
                 tile.setLayoutParams(params);
 
-                // 1. If the square is null, keep it transparent and skip the rest
                 if (squareColor == null) {
                     tile.setBackgroundColor(android.graphics.Color.TRANSPARENT);
                     mazeGrid.addView(tile);
                     continue;
                 }
 
-                // 2. Set default border
                 tile.setBackgroundResource(R.drawable.square_border);
 
-                // --- LAYER 1: BASE SHAPE ---
                 if (squareShape != null) {
                     ImageView shapeImage = new ImageView(this);
                     shapeImage.setLayoutParams(new FrameLayout.LayoutParams(
@@ -152,12 +153,10 @@ public class MainActivity extends AppCompatActivity {
                     tile.addView(shapeImage);
                 }
 
-                // --- LAYER 2: GOAL OVERLAY ---
                 if (viewModel.isGoalActive(r, c)) {
                     tile.setBackgroundResource(R.drawable.bg_goal_stripes);
                 }
 
-                // --- LAYER 3: EYEBALL OVERLAY ---
                 if (r == eyeRow && c == eyeCol) {
                     ImageView eyeballOverlay = new ImageView(this);
                     eyeballOverlay.setLayoutParams(new FrameLayout.LayoutParams(
@@ -167,31 +166,27 @@ public class MainActivity extends AppCompatActivity {
                     eyeballOverlay.setScaleType(ImageView.ScaleType.FIT_CENTER);
                     eyeballOverlay.setImageTintList(null);
 
-                    String direction = viewModel.getGame().getEyeballDirection().toString();
+                    String direction = viewModel.getEyeballDirection().toString();
                     eyeballOverlay.setRotation(getRotationForDirection(direction));
 
                     tile.addView(eyeballOverlay);
                 }
 
-                // 3. Click Listener
                 final int clickedRow = r;
                 final int clickedCol = c;
                 tile.setOnClickListener(v -> {
-                    Message feedback = viewModel.getGame().messageIfMovingTo(clickedRow, clickedCol);
+                    Message feedback = viewModel.messageIfMovingTo(clickedRow, clickedCol);
 
                     if (feedback == Message.OK) {
-                        // 2. If it's valid, perform the move
                         playSound(R.raw.move);
-                        viewModel.getGame().moveTo(clickedRow, clickedCol);
+                        viewModel.moveTo(clickedRow, clickedCol);
 
-                        // 3. Check if they just finished the level/game
                         checkCompletion(levelIndex);
                     } else {
                         playSound(R.raw.invalid_move);
                         String userFriendlyText = getFriendlyMessage(feedback);
                         Toast.makeText(this, userFriendlyText, Toast.LENGTH_SHORT).show();                    }
 
-                    // Always refresh the display
                     updateMazeDisplay(levelIndex);
                 });
 
@@ -202,8 +197,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void checkCompletion(int levelIndex) {
-        int remainingGoals = viewModel.getGame().getGoalCount();
-        int totalLevels = viewModel.getGame().getLevelCount();
+        int remainingGoals = viewModel.getGoalCount();
+        int totalLevels = viewModel.getLevelCount();
 
         if (remainingGoals == 0) {
             playSound(R.raw.level_complete);
@@ -234,26 +229,26 @@ public class MainActivity extends AppCompatActivity {
             builder.show();
         }
     }
-    private void updateGoals() {
-        if (mazeGrid == null) return;
-
-        int cols = viewModel.getGame().getLevelWidth();
-
-        for (int i = 0; i < mazeGrid.getChildCount(); i++) {
-            View child = mazeGrid.getChildAt(i);
-            if (child instanceof FrameLayout) {
-                int r = i / cols;
-                int c = i % cols;
-
-                // Since hitting a goal removes it from the list in your model:
-                if (viewModel.isGoalActive(r, c)) {
-                    child.setBackgroundResource(R.drawable.bg_goal_stripes);
-                } else {
-                    child.setBackgroundResource(R.drawable.square_border);
-                }
-            }
-        }
-    }
+//    private void updateGoals() {
+//        if (mazeGrid == null) return;
+//
+//        int cols = viewModel.getLevelWidth();
+//
+//        for (int i = 0; i < mazeGrid.getChildCount(); i++) {
+//            View child = mazeGrid.getChildAt(i);
+//            if (child instanceof FrameLayout) {
+//                int r = i / cols;
+//                int c = i % cols;
+//
+//                // Since hitting a goal removes it from the list in your model:
+//                if (viewModel.isGoalActive(r, c)) {
+//                    child.setBackgroundResource(R.drawable.bg_goal_stripes);
+//                } else {
+//                    child.setBackgroundResource(R.drawable.square_border);
+//                }
+//            }
+//        }
+//    }
 
     private int getSquareColor(String colorName) {
         if (colorName == null) return android.graphics.Color.TRANSPARENT;
@@ -285,11 +280,11 @@ public class MainActivity extends AppCompatActivity {
         TextView txtMoves = findViewById(R.id.txtMoves);
         TextView txtGoals = findViewById(R.id.txtGoals);
 
-        int activeGoals = viewModel.getGame().getGoalCount();
-        int completedGoals = viewModel.getGame().getCompletedGoalCount();
+        int activeGoals = viewModel.getGoalCount();
+        int completedGoals = viewModel.getCompletedGoalCount();
 
         txtLevel.setText("Level: " + (levelIndex + 1));
-        txtMoves.setText("Moves: " + viewModel.getGame().getMoveCount());
+        txtMoves.setText("Moves: " + viewModel.getMoveCount());
         txtGoals.setText("Goals: " + completedGoals + "/" + (activeGoals + completedGoals));
 
         LinearLayout container = findViewById(R.id.levelButtonContainer);
@@ -334,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
     private void playSound(int soundRawId) {
         if (isSoundEnabled) {
             MediaPlayer mp = MediaPlayer.create(this, soundRawId);
-            mp.setOnCompletionListener(MediaPlayer::release); // Free up memory when done
+            mp.setOnCompletionListener(MediaPlayer::release);
             mp.start();
         }
     }
