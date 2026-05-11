@@ -20,15 +20,6 @@ public class GoalHolder implements IGoalHolder {
 
 	}
 
-	//NEW METHOD TO RESET GOALS
-	public void resetGoals() {
-		goals.clear();
-		completedGoals.clear();
-		for (Position p : initialGoals) {
-			goals.add(new Position(p.getRow(), p.getColumn()));
-		}
-	}
-
 	@Override
 	public int getGoalCount() {
 		return goals.size();
@@ -43,8 +34,17 @@ public class GoalHolder implements IGoalHolder {
 	public int getCompletedGoalCount() {
 		return completedGoals.size();
 	}
-	
-	public void checkGoal(int row, int column) {
+
+    //NEW METHOD TO RESET GOALS & CHECK GOAL
+    public void resetGoals() {
+        goals.clear();
+        completedGoals.clear();
+        for (Position p : initialGoals) {
+            goals.add(new Position(p.getRow(), p.getColumn()));
+        }
+    }
+
+    public void checkGoal(int row, int column) {
 		Position goal = new Position(row, column);
 		if (goals.contains(goal)) {
 			completedGoals.add(goal);

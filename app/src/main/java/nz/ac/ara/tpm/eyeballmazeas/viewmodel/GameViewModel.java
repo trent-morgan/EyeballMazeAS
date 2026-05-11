@@ -3,8 +3,9 @@ package nz.ac.ara.tpm.eyeballmazeas.viewmodel;
 import android.app.Application;
 import android.util.Log;
 
-import androidx.lifecycle.AndroidViewModel; // Updated this
+import androidx.lifecycle.AndroidViewModel;
 
+import nz.ac.ara.tpm.eyeballmazeas.R;
 import nz.ac.ara.tpm.eyeballmazeas.model.Direction;
 import nz.ac.ara.tpm.eyeballmazeas.model.Game;
 import nz.ac.ara.tpm.eyeballmazeas.model.Message;
@@ -116,6 +117,62 @@ public class GameViewModel extends AndroidViewModel {
 
             game.addEyeball(start.row, start.column, dir);
         }
+    }
+
+    public void startLevel(int levelIndex) {
+        setCurrentLevel(levelIndex);
+        resetEyeballForLevel(levelIndex);
+        resetMoveCount();
+        resetGoalsForCurrentLevel();
+    }
+
+    public int getSquareColor(String colorName) {
+        if (colorName == null) return android.graphics.Color.TRANSPARENT;
+        return switch (colorName.toUpperCase()) {
+            case "RED" -> android.graphics.Color.RED;
+            case "BLUE" -> android.graphics.Color.CYAN;
+            case "GREEN" -> android.graphics.Color.parseColor("#32CD32");
+            case "YELLOW" -> android.graphics.Color.YELLOW;
+            case "PURPLE" -> android.graphics.Color.MAGENTA;
+            default -> android.graphics.Color.LTGRAY;
+        };
+    }
+
+    public int getShapeResource(String shapeName) {
+        if (shapeName == null) return 0;
+        return switch (shapeName.toUpperCase()) {
+            case "STAR" -> R.drawable.ic_star;
+            case "FLOWER" -> R.drawable.ic_flower;
+            case "DIAMOND" -> R.drawable.ic_diamond;
+            case "CROSS" -> R.drawable.ic_cross;
+            case "LIGHTNING" -> R.drawable.ic_lightning;
+            case "EYEBALL" -> R.drawable.ic_eyeball;
+            default -> 0;
+        };
+    }
+
+    public float getRotationForDirection(String direction) {
+        if (direction == null) return 0f;
+        return switch (direction.toUpperCase()) {
+            case "UP" -> 0f;
+            case "RIGHT" -> 90f;
+            case "DOWN" -> 180f;
+            case "LEFT" -> 270f;
+            default -> 0f;
+        };
+    }
+
+    public String getFriendlyMessage(Message message) {
+        if (message == null) return "";
+
+        return switch (message) {
+            case OK -> "Move successful!";
+            case MOVING_DIAGONALLY -> "You can only move in straight lines.";
+            case BACKWARDS_MOVE -> "No looking back! You can't move backwards.";
+            case MOVING_OVER_BLANK -> "You can't jump over empty spaces.";
+            case DIFFERENT_SHAPE_OR_COLOR -> "You must match the color or the shape!";
+            default -> "Illegal move!";
+        };
     }
 
     public void resetGoalsForCurrentLevel () {game.resetGoalsForCurrentLevel();}

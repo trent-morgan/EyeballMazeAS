@@ -38,26 +38,7 @@ public class MainActivity extends AppCompatActivity {
         mazeGrid = findViewById(R.id.mazeGrid);
 
         LinearLayout container = findViewById(R.id.levelButtonContainer);
-        int levelCount = viewModel.getLevelCount();
-
-        for (int i = 0; i < levelCount; i++) {
-            int levelIndex = i;
-            int levelNum = i + 1;
-
-            Button btn = new Button(this);
-            btn.setSoundEffectsEnabled(false);
-            int size = (int) (60 * getResources().getDisplayMetrics().density);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
-            params.setMargins(8, 8, 8, 8);
-            btn.setLayoutParams(params);
-
-            btn.setText(String.valueOf(levelNum));
-            btn.setTag(i);
-
-            btn.setOnClickListener(v -> startLevel(levelIndex));
-
-            container.addView(btn);
-        }
+        createLevelButtons(container);
 
         startLevel(0);
 
@@ -82,11 +63,31 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void createLevelButtons(LinearLayout container) {
+        int levelCount = viewModel.getLevelCount();
+
+        for (int i = 0; i < levelCount; i++) {
+            int levelIndex = i;
+            int levelNum = i + 1;
+
+            Button btn = new Button(this);
+            btn.setSoundEffectsEnabled(false);
+            int size = (int) (60 * getResources().getDisplayMetrics().density);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(size, size);
+            params.setMargins(8, 8, 8, 8);
+            btn.setLayoutParams(params);
+
+            btn.setText(String.valueOf(levelNum));
+            btn.setTag(i);
+
+            btn.setOnClickListener(v -> startLevel(levelIndex));
+
+            container.addView(btn);
+        }
+    }
+
     private void startLevel(int levelIndex) {
-        viewModel.setCurrentLevel(levelIndex);
-        viewModel.resetEyeballForLevel(levelIndex);
-        viewModel.resetMoveCount();
-        viewModel.resetGoalsForCurrentLevel();
+        viewModel.startLevel(levelIndex);
         updateMazeDisplay(levelIndex);
     }
 
@@ -146,9 +147,9 @@ public class MainActivity extends AppCompatActivity {
                             FrameLayout.LayoutParams.MATCH_PARENT));
                     shapeImage.setPadding(12, 12, 12, 12);
                     shapeImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    shapeImage.setImageResource(getShapeResource(squareShape.toString()));
+                    shapeImage.setImageResource(viewModel.getShapeResource(squareShape.toString()));
 
-                    int colorInt = getSquareColor(squareColor.toString());
+                    int colorInt = viewModel.getSquareColor(squareColor.toString());
                     shapeImage.setImageTintList(android.content.res.ColorStateList.valueOf(colorInt));
                     tile.addView(shapeImage);
                 }
@@ -167,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                     eyeballOverlay.setImageTintList(null);
 
                     String direction = viewModel.getEyeballDirection().toString();
-                    eyeballOverlay.setRotation(getRotationForDirection(direction));
+                    eyeballOverlay.setRotation(viewModel.getRotationForDirection(direction));
 
                     tile.addView(eyeballOverlay);
                 }
@@ -184,8 +185,8 @@ public class MainActivity extends AppCompatActivity {
                         checkCompletion(levelIndex);
                     } else {
                         playSound(R.raw.invalid_move);
-                        String userFriendlyText = getFriendlyMessage(feedback);
-                        Toast.makeText(this, userFriendlyText, Toast.LENGTH_SHORT).show();                    }
+                        String userFriendlyText = viewModel.getFriendlyMessage(feedback);
+                        Toast.makeText(this, userFriendlyText, Toast.LENGTH_SHORT).show();}
 
                     updateMazeDisplay(levelIndex);
                 });
@@ -204,12 +205,13 @@ public class MainActivity extends AppCompatActivity {
             playSound(R.raw.level_complete);
 
             androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-
+            String title = "CLEARED: Level " + (levelIndex + 1);
+            String message = "Moves: " + viewModel.getMoveCount();
+            builder.setTitle(title)
+                    .setMessage(message)
+                    .setCancelable(false);
             if (levelIndex + 1 < totalLevels) {
-                builder.setTitle("Level " + (levelIndex + 1) + " Cleared")
-                        .setMessage("Moves: " + viewModel.getMoveCount())
-                        .setCancelable(false)
-                        .setPositiveButton("Next Level", (dialog, which) -> {
+                builder.setPositiveButton("Next Level", (dialog, which) -> {
                             int next = levelIndex + 1;
                             startLevel(next);
                         })
@@ -218,61 +220,13 @@ public class MainActivity extends AppCompatActivity {
                         });
 
             } else {
-                builder.setTitle("Level " + (levelIndex + 1) + " Cleared")
-                        .setMessage("Moves: " + viewModel.getMoveCount())
-                        .setCancelable(false)
-                        .setPositiveButton("Start Over", (dialog, which) -> {
+                builder.setPositiveButton("Start Over", (dialog, which) -> {
                             startLevel(0);
                         })
                         .setNegativeButton("Close", null);
             }
             builder.show();
         }
-    }
-//    private void updateGoals() {
-//        if (mazeGrid == null) return;
-//
-//        int cols = viewModel.getLevelWidth();
-//
-//        for (int i = 0; i < mazeGrid.getChildCount(); i++) {
-//            View child = mazeGrid.getChildAt(i);
-//            if (child instanceof FrameLayout) {
-//                int r = i / cols;
-//                int c = i % cols;
-//
-//                // Since hitting a goal removes it from the list in your model:
-//                if (viewModel.isGoalActive(r, c)) {
-//                    child.setBackgroundResource(R.drawable.bg_goal_stripes);
-//                } else {
-//                    child.setBackgroundResource(R.drawable.square_border);
-//                }
-//            }
-//        }
-//    }
-
-    private int getSquareColor(String colorName) {
-        if (colorName == null) return android.graphics.Color.TRANSPARENT;
-        return switch (colorName.toUpperCase()) {
-            case "RED" -> android.graphics.Color.RED;
-            case "BLUE" -> android.graphics.Color.CYAN;
-            case "GREEN" -> android.graphics.Color.parseColor("#32CD32");
-            case "YELLOW" -> android.graphics.Color.YELLOW;
-            case "PURPLE" -> android.graphics.Color.MAGENTA;
-            default -> android.graphics.Color.LTGRAY;
-        };
-    }
-
-    private int getShapeResource(String shapeName) {
-        if (shapeName == null) return 0;
-        return switch (shapeName.toUpperCase()) {
-            case "STAR" -> R.drawable.ic_star;
-            case "FLOWER" -> R.drawable.ic_flower;
-            case "DIAMOND" -> R.drawable.ic_diamond;
-            case "CROSS" -> R.drawable.ic_cross;
-            case "LIGHTNING" -> R.drawable.ic_lightning;
-            case "EYEBALL" -> R.drawable.ic_eyeball;
-            default -> 0;
-        };
     }
 
     private void updateLabelDisplay(int levelIndex) {
@@ -300,30 +254,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }
-    }
-
-    private float getRotationForDirection(String direction) {
-        if (direction == null) return 0f;
-        return switch (direction.toUpperCase()) {
-            case "UP" -> 0f;
-            case "RIGHT" -> 90f;
-            case "DOWN" -> 180f;
-            case "LEFT" -> 270f;
-            default -> 0f;
-        };
-    }
-
-    private String getFriendlyMessage(Message message) {
-        if (message == null) return "";
-
-        return switch (message) {
-            case OK -> "Move successful!";
-            case MOVING_DIAGONALLY -> "You can only move in straight lines.";
-            case BACKWARDS_MOVE -> "No looking back! You can't move backwards.";
-            case MOVING_OVER_BLANK -> "You can't jump over empty spaces.";
-            case DIFFERENT_SHAPE_OR_COLOR -> "You must match the color or the shape!";
-            default -> "Illegal move!";
-        };
     }
 
     private void playSound(int soundRawId) {

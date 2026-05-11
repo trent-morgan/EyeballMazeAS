@@ -231,13 +231,8 @@ public class Game implements IMoving, IEyeballHolder {
 		    this.checkGoal(destinationRow, destinationColumn);
 		}
 	}
-	
-	public void checkGoal(int row, int column) {
-		this.levelHolder.checkGoal(row, column);
-	}
 
 	//ADDED FOR MOVE COUNT
-	public void increaseMoveCount () { this.moveCount ++; }
 	public int getMoveCount() {
 		return this.moveCount;
 	}
@@ -245,6 +240,10 @@ public class Game implements IMoving, IEyeballHolder {
 	public void resetMoveCount() {
 		this.moveCount = 0;
 	}
+
+    public void checkGoal(int row, int column) {
+        this.levelHolder.checkGoal(row, column);
+    }
 
 	public void resetGoalsForCurrentLevel() {
 		this.levelHolder.resetGoalsForCurrentLevel();
