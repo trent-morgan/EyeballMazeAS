@@ -19,10 +19,9 @@ public class SquareHolder implements ISquareHolder {
 
 		if (current instanceof PlayableSquare p) {
 		    return p.color(); 
-		} else if (current instanceof BlankSquare) {
+		} else {
 			return Color.BLANK;
 		}
-		return null;
 	}
 
 	@Override
@@ -31,10 +30,9 @@ public class SquareHolder implements ISquareHolder {
 
 		if (current instanceof PlayableSquare p) {
 		    return p.shape(); 
-		} else if (current instanceof BlankSquare) {
+		} else  {
 			return Shape.BLANK;
 		}
-		return null;
 	}
 
 }

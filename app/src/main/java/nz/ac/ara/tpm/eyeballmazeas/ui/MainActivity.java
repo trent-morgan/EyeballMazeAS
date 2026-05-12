@@ -92,109 +92,109 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateMazeDisplay(int levelIndex) {
+        if (!setupGridBase()) return;
+
+        int rows = viewModel.getLevelHeight();
+        int cols = viewModel.getLevelWidth();
+        int squareSize = calculateSquareSize(cols);
+
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                View tile = createTile(r, c, squareSize, levelIndex);
+                mazeGrid.addView(tile);
+            }
+        }
+        updateLabelDisplay(levelIndex);
+    }
+
+    private boolean setupGridBase() {
         if (mazeGrid == null) mazeGrid = findViewById(R.id.mazeGrid);
         mazeGrid.removeAllViews();
 
         if (viewModel.getGame() == null || viewModel.getLevelWidth() == 0) {
-            Log.e("UI_ERROR", "Level data missing for index: " + levelIndex);
-            return;
+            return false;
         }
 
-        int eyeRow = viewModel.getEyeballRow();
-        int eyeCol = viewModel.getEyeballColumn();
-        int rows = viewModel.getLevelHeight();
-        int cols = viewModel.getLevelWidth();
+        mazeGrid.setRowCount(viewModel.getLevelHeight());
+        mazeGrid.setColumnCount(viewModel.getLevelWidth());
+        return true;
+    }
 
-        mazeGrid.setRowCount(rows);
-        mazeGrid.setColumnCount(cols);
+    private View createTile(int r, int c, int size, int levelIndex) {
+        FrameLayout tile = new FrameLayout(this);
+        tile.setSoundEffectsEnabled(false);
 
-        int squareSize = switch (cols) {
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams(
+                GridLayout.spec(r, 1f),
+                GridLayout.spec(c, 1f));
+        params.width = params.height = size;
+        params.setMargins(1, 1, 1, 1);
+        tile.setLayoutParams(params);
+
+        Color color = viewModel.getColorAt(r, c);
+        if (color == Color.BLANK) {
+            tile.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            return tile;
+        }
+
+        tile.setBackgroundResource(R.drawable.square_border);
+
+        Shape shape = viewModel.getShapeAt(r, c);
+        if (shape != Shape.BLANK) {
+            addShapeToTile(tile, shape, color);
+        }
+
+        if (viewModel.isGoalActive(r, c)) {
+            tile.setBackgroundResource(R.drawable.bg_goal_stripes);
+        }
+
+        if (r == viewModel.getEyeballRow() && c == viewModel.getEyeballColumn()) {
+            addEyeballToTile(tile);
+        }
+
+        tile.setOnClickListener(v -> handleTileClick(r, c, levelIndex));
+        return tile;
+    }
+
+    private void addShapeToTile(FrameLayout tile, Shape shape, Color color) {
+        ImageView img = new ImageView(this);
+        img.setLayoutParams(new FrameLayout.LayoutParams(-1, -1)); // MATCH_PARENT
+        img.setPadding(12, 12, 12, 12);
+        img.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        img.setImageResource(viewModel.getShapeResource(shape.toString()));
+        img.setImageTintList(android.content.res.ColorStateList.valueOf(viewModel.getSquareColor(color.toString())));
+        tile.addView(img);
+    }
+
+    private void addEyeballToTile(FrameLayout tile) {
+        ImageView eyeball = new ImageView(this);
+        eyeball.setLayoutParams(new FrameLayout.LayoutParams(-1, -1));
+        eyeball.setImageResource(R.drawable.ic_eyeball);
+        eyeball.setRotation(viewModel.getRotationForDirection(viewModel.getEyeballDirection().toString()));
+        tile.addView(eyeball);
+    }
+
+    private void handleTileClick(int r, int c, int levelIndex) {
+        Message feedback = viewModel.messageIfMovingTo(r, c);
+
+        if (feedback == Message.OK) {
+            playSound(R.raw.move);
+            viewModel.moveTo(r, c);
+            checkCompletion(levelIndex);
+        } else {
+            playSound(R.raw.invalid_move);
+            Toast.makeText(this, viewModel.getFriendlyMessage(feedback), Toast.LENGTH_SHORT).show();
+        }
+        updateMazeDisplay(levelIndex);
+    }
+
+    private int calculateSquareSize(int cols) {
+        return switch (cols) {
             case 6 -> 200;
             case 5 -> 230;
             case 4 -> 280;
             default -> 170;
         };
-
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                Color squareColor = viewModel.getColorAt(r, c);
-                Shape squareShape = viewModel.getShapeAt(r, c);
-
-                FrameLayout tile = new FrameLayout(this);
-                tile.setSoundEffectsEnabled(false);
-
-                GridLayout.LayoutParams params = new GridLayout.LayoutParams(
-                        GridLayout.spec(r, 1f),
-                        GridLayout.spec(c, 1f)
-                );
-                params.width = squareSize;
-                params.height = squareSize;
-                params.setMargins(1, 1, 1, 1);
-                tile.setLayoutParams(params);
-
-                if (squareColor == null) {
-                    tile.setBackgroundColor(android.graphics.Color.TRANSPARENT);
-                    mazeGrid.addView(tile);
-                    continue;
-                }
-
-                tile.setBackgroundResource(R.drawable.square_border);
-
-                if (squareShape != null) {
-                    ImageView shapeImage = new ImageView(this);
-                    shapeImage.setLayoutParams(new FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.MATCH_PARENT,
-                            FrameLayout.LayoutParams.MATCH_PARENT));
-                    shapeImage.setPadding(12, 12, 12, 12);
-                    shapeImage.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    shapeImage.setImageResource(viewModel.getShapeResource(squareShape.toString()));
-
-                    int colorInt = viewModel.getSquareColor(squareColor.toString());
-                    shapeImage.setImageTintList(android.content.res.ColorStateList.valueOf(colorInt));
-                    tile.addView(shapeImage);
-                }
-
-                if (viewModel.isGoalActive(r, c)) {
-                    tile.setBackgroundResource(R.drawable.bg_goal_stripes);
-                }
-
-                if (r == eyeRow && c == eyeCol) {
-                    ImageView eyeballOverlay = new ImageView(this);
-                    eyeballOverlay.setLayoutParams(new FrameLayout.LayoutParams(
-                            FrameLayout.LayoutParams.MATCH_PARENT,
-                            FrameLayout.LayoutParams.MATCH_PARENT));
-                    eyeballOverlay.setImageResource(R.drawable.ic_eyeball);
-                    eyeballOverlay.setScaleType(ImageView.ScaleType.FIT_CENTER);
-                    eyeballOverlay.setImageTintList(null);
-
-                    String direction = viewModel.getEyeballDirection().toString();
-                    eyeballOverlay.setRotation(viewModel.getRotationForDirection(direction));
-
-                    tile.addView(eyeballOverlay);
-                }
-
-                final int clickedRow = r;
-                final int clickedCol = c;
-                tile.setOnClickListener(v -> {
-                    Message feedback = viewModel.messageIfMovingTo(clickedRow, clickedCol);
-
-                    if (feedback == Message.OK) {
-                        playSound(R.raw.move);
-                        viewModel.moveTo(clickedRow, clickedCol);
-
-                        checkCompletion(levelIndex);
-                    } else {
-                        playSound(R.raw.invalid_move);
-                        String userFriendlyText = viewModel.getFriendlyMessage(feedback);
-                        Toast.makeText(this, userFriendlyText, Toast.LENGTH_SHORT).show();}
-
-                    updateMazeDisplay(levelIndex);
-                });
-
-                mazeGrid.addView(tile);
-            }
-        }
-        updateLabelDisplay(levelIndex);
     }
 
     private void checkCompletion(int levelIndex) {
