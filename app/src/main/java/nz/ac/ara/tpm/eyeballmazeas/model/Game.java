@@ -65,7 +65,6 @@ public class Game implements IMoving, IEyeballHolder {
 	    return this.levelHolder.getCurrentLevel().getShapeAt(row, column);
 	}
 	
-	// NEED TO DO
 	public void addEyeball(int row, int column, Direction direction) {
 		if (row < 0 || row > this.getLevelHeight() || column < 0 || column > this.getLevelWidth()) {
 	        throw new IllegalArgumentException();

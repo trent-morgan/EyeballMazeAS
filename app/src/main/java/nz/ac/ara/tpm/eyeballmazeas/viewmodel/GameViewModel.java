@@ -40,7 +40,7 @@ public class GameViewModel extends AndroidViewModel {
             if (levelFiles != null) {
                 java.util.List<String> fileList = new java.util.ArrayList<>(java.util.Arrays.asList(levelFiles));
 
-                //TO STOP LEVEL BEING SORTED ALPHABETICALLY (11 < 9 WOULD BE WRONG)
+                //TO STOP LEVEL BEING SORTED ALPHABETICALLY (e.g. 11 < 9 IS TRUE, WHICH IS WRONG)
                 java.util.Collections.sort(fileList, (o1, o2) -> {
                     try {
                         int n1 = Integer.parseInt(o1.replaceAll("[^0-9]", ""));
@@ -181,6 +181,7 @@ public class GameViewModel extends AndroidViewModel {
         return this.game;
     }
 
+    //JSON DATA HOLDERS
 
     private static class LevelData {
         int width;
@@ -189,7 +190,6 @@ public class GameViewModel extends AndroidViewModel {
         List<GoalData> goals;
         List<SquareData> squares;
     }
-    //JSON DATA HOLDERS
     private static class GoalData {
         int row;
         int column;

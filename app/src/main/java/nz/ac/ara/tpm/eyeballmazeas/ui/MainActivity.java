@@ -1,8 +1,10 @@
 package nz.ac.ara.tpm.eyeballmazeas.ui;
 
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -12,7 +14,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.VideoView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -55,18 +59,14 @@ public class MainActivity extends AppCompatActivity {
 
         Button btnRules = findViewById(R.id.btnRules);
 
-        btnRules.setOnClickListener(v -> new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("How to Play")
-                .setMessage("Move the eyeball to the goal by matching colors or shapes!")
-                .setPositiveButton("Got it!", null)
-                .show());
+        btnRules.setOnClickListener(v -> showVideoPopup());
 
     }
 
     private void createLevelButtons(LinearLayout container) {
         int levelCount = viewModel.getLevelCount();
 
-        for (int i = 0; i < levelCount; i++) {
+        for (var i = 0; i < levelCount; i++) {
             int levelIndex = i;
             int levelNum = i + 1;
 
@@ -204,12 +204,24 @@ public class MainActivity extends AppCompatActivity {
         if (remainingGoals == 0) {
             playSound(R.raw.level_complete);
 
-            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
-            String title = "CLEARED: Level " + (levelIndex + 1);
-            String message = "Moves: " + viewModel.getMoveCount();
-            builder.setTitle(title)
-                    .setMessage(message)
+            androidx.appcompat.app.AlertDialog.Builder builder =
+                    new androidx.appcompat.app.AlertDialog.Builder(this);
+
+            StringBuilder titleBuilder = new StringBuilder();
+            titleBuilder.append("CLEARED: Level ")
+                    .append(levelIndex + 1);
+
+            StringBuilder messageBuilder = new StringBuilder();
+            messageBuilder.append("""
+                    Congratualations!
+                    Moves: 
+                    """)
+                    .append(viewModel.getMoveCount());
+
+            builder.setTitle(titleBuilder.toString())
+                    .setMessage(messageBuilder.toString())
                     .setCancelable(false);
+
             if (levelIndex + 1 < totalLevels) {
                 builder.setPositiveButton("Next Level", (dialog, which) -> {
                             int next = levelIndex + 1;
@@ -225,9 +237,11 @@ public class MainActivity extends AppCompatActivity {
                         })
                         .setNegativeButton("Close", null);
             }
+
             builder.show();
         }
     }
+
 
     private void updateLabelDisplay(int levelIndex) {
         TextView txtLevel = findViewById(R.id.txtLevel);
@@ -263,4 +277,28 @@ public class MainActivity extends AppCompatActivity {
             mp.start();
         }
     }
+
+    private void showVideoPopup() {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View popupView = inflater.inflate(R.layout.tutorial_video, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(popupView);
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+        VideoView videoView = popupView.findViewById(R.id.popupVideo);
+        Button playBtn = popupView.findViewById(R.id.playBtn);
+        Button pauseBtn = popupView.findViewById(R.id.pauseBtn);
+        Button closeBtn = popupView.findViewById(R.id.closePopup);
+
+        Uri videoUri = Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.game_tutorial);
+        videoView.setVideoURI(videoUri);
+        videoView.start();
+
+        playBtn.setOnClickListener(v -> videoView.start());
+        pauseBtn.setOnClickListener(v -> videoView.pause());
+        closeBtn.setOnClickListener(v -> dialog.dismiss());
+    }
+
 }
